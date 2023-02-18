@@ -6,9 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestPrecedence(t *testing.T) {
@@ -17,21 +14,26 @@ func TestPrecedence(t *testing.T) {
 
 	// Run the tests in a temporary directory
 	tmpDir, err := os.MkdirTemp("", "snakebite")
-	require.NoError(t, err, "error creating a temporary test directory")
+	if err != nil {
+		t.Fatalf("failed to create a temporary test directory: %v", err)
+	}
 
 	testDir, err := os.Getwd()
-	require.NoError(t, err, "error getting the current working directory")
+	if err != nil {
+		t.Fatalf("failed to get current directory: %v", err)
+	}
 
 	defer func() {
 		if err := os.Chdir(testDir); err != nil {
-			t.Fatalf("failed to change directory: %q", err)
+			t.Fatalf("failed to change directory: %v", err)
 		}
 	}()
 
-	err = os.Chdir(tmpDir)
-	require.NoError(t, err, "error changing to the temporary test directory")
+	if err := os.Chdir(tmpDir); err != nil {
+		t.Fatalf("failed to change directory: %v", err)
+	}
 
-	t.Run("Set favorite-color with the config file", func(t *testing.T) {
+	t.Run("Set favorite-color from the config file and the number from the default flag value", func(t *testing.T) {
 		testcases := []struct {
 			name                       string
 			configFile                 string
@@ -47,10 +49,13 @@ func TestPrecedence(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				// Copy the config file into our temporary test directory
 				configB, err := os.ReadFile(filepath.Join(testDir, tc.configFile))
-				require.NoError(t, err, "error reading test config file")
+				if err != nil {
+					t.Fatalf("failed to read test config file: %v", err)
+				}
 
-				err = os.WriteFile(filepath.Join(tmpDir, configFileTOML), configB, 0644)
-				require.NoError(t, err, "error writing test config file")
+				if err := os.WriteFile(filepath.Join(tmpDir, configFileTOML), configB, 0644); err != nil {
+					t.Fatalf("failed to write test config file: %v", err)
+				}
 				defer os.Remove(filepath.Join(tmpDir, configFileTOML))
 
 				// Run ./example
@@ -61,16 +66,18 @@ func TestPrecedence(t *testing.T) {
 					t.Fatalf("failed to execute command: %q", err)
 				}
 
-				gotOutput := output.String()
-				wantOutput := `Your favorite color is: blue
+				got := output.String()
+				want := `Your favorite color is: blue
 The magic number is: 7
 `
-				assert.Equal(t, wantOutput, gotOutput, "expected the color from the config file and the number from the flag default")
+				if got != want {
+					t.Errorf("want output %q, got %q", want, got)
+				}
 			})
 		}
 	})
 
-	t.Run("Set favorite-color with an environment variable", func(t *testing.T) {
+	t.Run("Set favorite-color from the environment variable value and the number from the default flag value", func(t *testing.T) {
 		// Run TEST_FAVORITE_COLOR=purple ./example
 		colorEnvVar := fmt.Sprintf("%s_FAVORITE_COLOR", envPrefix)
 
@@ -84,14 +91,16 @@ The magic number is: 7
 			t.Fatalf("failed to execute command: %q", err)
 		}
 
-		gotOutput := output.String()
-		wantOutput := `Your favorite color is: purple
+		got := output.String()
+		want := `Your favorite color is: purple
 The magic number is: 7
 `
-		assert.Equal(t, wantOutput, gotOutput, "expected the color to use the environment variable value and the number to use the flag default")
+		if got != want {
+			t.Errorf("want output %q, got %q", want, got)
+		}
 	})
 
-	t.Run("Set number with a flag", func(t *testing.T) {
+	t.Run("Set number from the flag value and the color from the default flag value", func(t *testing.T) {
 		// Run ./example --number 2
 		cmd := newRootCommand(envPrefix, configName, false)
 		output := &bytes.Buffer{}
@@ -101,10 +110,12 @@ The magic number is: 7
 			t.Fatalf("failed to execute command: %q", err)
 		}
 
-		gotOutput := output.String()
-		wantOutput := `Your favorite color is: red
+		got := output.String()
+		want := `Your favorite color is: red
 The magic number is: 2
 `
-		assert.Equal(t, wantOutput, gotOutput, "expected the number to use the flag value and the color to use the flag default")
+		if got != want {
+			t.Errorf("want output %q, got %q", want, got)
+		}
 	})
 }
