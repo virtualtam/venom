@@ -1,6 +1,7 @@
 package venom
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -45,13 +46,17 @@ func Inject(cmd *cobra.Command, envPrefix string, configName string, replaceHyph
 	v.AutomaticEnv()
 
 	// Bind the current command's flags to viper
-	bindFlags(cmd, v, replaceHyphenWithCamelCase)
+	if err := bindFlags(cmd, v, replaceHyphenWithCamelCase); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 // Bind each cobra flag to its associated viper configuration (config file and environment variable)
-func bindFlags(cmd *cobra.Command, v *viper.Viper, replaceHyphenWithCamelCase bool) {
+func bindFlags(cmd *cobra.Command, v *viper.Viper, replaceHyphenWithCamelCase bool) error {
+	var flagErrors error
+
 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
 		// Determine the naming convention of the flags when represented in the config file
 		configName := f.Name
@@ -64,7 +69,15 @@ func bindFlags(cmd *cobra.Command, v *viper.Viper, replaceHyphenWithCamelCase bo
 		// Apply the viper config value to the flag when the flag is not set and viper has a value
 		if !f.Changed && v.IsSet(configName) {
 			val := v.Get(configName)
-			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if err := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val)); err != nil {
+				flagErrors = errors.Join(flagErrors, err)
+			}
 		}
 	})
+
+	if flagErrors != nil {
+		return fmt.Errorf("failed to bind command flags: %v", flagErrors)
+	}
+
+	return nil
 }

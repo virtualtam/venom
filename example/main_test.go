@@ -14,9 +14,16 @@ func TestPrecedence(t *testing.T) {
 	// Run the tests in a temporary directory
 	tmpDir, err := os.MkdirTemp("", "stingoftheviper")
 	require.NoError(t, err, "error creating a temporary test directory")
+
 	testDir, err := os.Getwd()
 	require.NoError(t, err, "error getting the current working directory")
-	defer os.Chdir(testDir)
+
+	defer func() {
+		if err := os.Chdir(testDir); err != nil {
+			t.Fatalf("failed to change directory: %q", err)
+		}
+	}()
+
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err, "error changing to the temporary test directory")
 
@@ -46,7 +53,9 @@ func TestPrecedence(t *testing.T) {
 				cmd := NewRootCommand()
 				output := &bytes.Buffer{}
 				cmd.SetOut(output)
-				cmd.Execute()
+				if err := cmd.Execute(); err != nil {
+					t.Fatalf("failed to execute command: %q", err)
+				}
 
 				gotOutput := output.String()
 				wantOutput := `Your favorite color is: blue
@@ -66,7 +75,9 @@ The magic number is: 7
 		cmd := NewRootCommand()
 		output := &bytes.Buffer{}
 		cmd.SetOut(output)
-		cmd.Execute()
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("failed to execute command: %q", err)
+		}
 
 		gotOutput := output.String()
 		wantOutput := `Your favorite color is: purple
@@ -82,7 +93,9 @@ The magic number is: 7
 		output := &bytes.Buffer{}
 		cmd.SetOut(output)
 		cmd.SetArgs([]string{"--number", "2"})
-		cmd.Execute()
+		if err := cmd.Execute(); err != nil {
+			t.Fatalf("failed to execute command: %q", err)
+		}
 
 		gotOutput := output.String()
 		wantOutput := `Your favorite color is: red
