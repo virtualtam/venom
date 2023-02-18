@@ -37,12 +37,12 @@ func Inject(cmd *cobra.Command, envPrefix string, configName string, replaceHyph
 
 	// When we bind flags to environment variables expect that the
 	// environment variables are prefixed, e.g. a flag like --number
-	// binds to an environment variable STING_NUMBER. This helps
+	// binds to an environment variable MYAPP_NUMBER. This helps
 	// avoid conflicts.
 	v.SetEnvPrefix(envPrefix)
 
 	// Environment variables can't have dashes in them, so bind them to their equivalent
-	// keys with underscores, e.g. --favorite-color to STING_FAVORITE_COLOR
+	// keys with underscores, e.g. --favorite-color to MYAPP_FAVORITE_COLOR
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	// Bind to environment variables

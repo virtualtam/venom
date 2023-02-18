@@ -2,34 +2,28 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/virtualtam/venom"
 )
 
-// I'm declaring as vars so I can test easier, I recommend declaring these as constants
-var (
+func main() {
 	// The name of our config file, without the file extension because viper supports many different config file languages.
-	defaultConfigFilename = "stingoftheviper"
+	defaultConfigFilename := "venomous"
 
 	// The environment variable prefix of all environment variables bound to our command line flags.
-	// For example, --number is bound to STING_NUMBER.
-	envPrefix = "STING"
+	// For example, --number is bound to VENOMOUS_NUMBER.
+	envPrefix := "VENOMOUS"
 
 	// Replace hyphenated flag names with camelCase in the config file
-	replaceHyphenWithCamelCase = false
-)
+	replaceHyphenWithCamelCase := false
 
-func main() {
-	cmd := NewRootCommand()
-	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+	cmd := newRootCommand(envPrefix, defaultConfigFilename, replaceHyphenWithCamelCase)
+	cobra.CheckErr(cmd.Execute())
 }
 
-// Build the cobra command that handles our command line tool.
-func NewRootCommand() *cobra.Command {
+// newRootCommand initializes and returns an example Cobra command.
+func newRootCommand(envPrefix string, configName string, replaceHyphenWithCamelCase bool) *cobra.Command {
 	// Store the result of binding cobra flags and viper config. In a
 	// real application these would be data structures, most likely
 	// custom structs per command. This is simplified for the demo app and is
@@ -41,12 +35,12 @@ func NewRootCommand() *cobra.Command {
 
 	// Define our command
 	rootCmd := &cobra.Command{
-		Use:   "venom-example",
-		Short: "Cober and Viper together at last",
+		Use:   "example",
+		Short: "Cobra and Viper together at last",
 		Long:  "Demonstrate how to get cobra flags to bind to viper properly",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-			return venom.Inject(cmd, envPrefix, defaultConfigFilename, replaceHyphenWithCamelCase)
+			return venom.Inject(cmd, envPrefix, configName, replaceHyphenWithCamelCase)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
@@ -59,8 +53,20 @@ func NewRootCommand() *cobra.Command {
 	}
 
 	// Define cobra flags, the default value has the lowest (least significant) precedence
-	rootCmd.Flags().IntVarP(&number, "number", "n", 7, "What is the magic number?")
-	rootCmd.Flags().StringVarP(&color, "favorite-color", "c", "red", "Should come from flag first, then env var STING_FAVORITE_COLOR then the config file, then the default last")
+	rootCmd.Flags().IntVarP(
+		&number,
+		"number",
+		"n",
+		7,
+		"What is the magic number?",
+	)
+	rootCmd.Flags().StringVarP(
+		&color,
+		"favorite-color",
+		"c",
+		"red",
+		fmt.Sprintf("Should come from flag first, then env var %s_FAVORITE_COLOR then the config file, then the default last", envPrefix),
+	)
 
 	return rootCmd
 }

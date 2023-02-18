@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,8 +12,11 @@ import (
 )
 
 func TestPrecedence(t *testing.T) {
+	envPrefix := "TEST"
+	configName := "test"
+
 	// Run the tests in a temporary directory
-	tmpDir, err := os.MkdirTemp("", "stingoftheviper")
+	tmpDir, err := os.MkdirTemp("", "snakebite")
 	require.NoError(t, err, "error creating a temporary test directory")
 
 	testDir, err := os.Getwd()
@@ -27,8 +31,7 @@ func TestPrecedence(t *testing.T) {
 	err = os.Chdir(tmpDir)
 	require.NoError(t, err, "error changing to the temporary test directory")
 
-	// Set favorite-color with the config file
-	t.Run("config file", func(t *testing.T) {
+	t.Run("Set favorite-color with the config file", func(t *testing.T) {
 		testcases := []struct {
 			name                       string
 			configFile                 string
@@ -37,20 +40,21 @@ func TestPrecedence(t *testing.T) {
 			{name: "hyphen", configFile: "testdata/config-hyphen.toml"},
 			{name: "camelCase", configFile: "testdata/config-camel.toml", replaceHyphenWithCamelCase: true},
 		}
+
+		configFileTOML := fmt.Sprintf("%s.toml", configName)
+
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
-				replaceHyphenWithCamelCase = tc.replaceHyphenWithCamelCase
-				defer func() { replaceHyphenWithCamelCase = false }()
-
 				// Copy the config file into our temporary test directory
 				configB, err := os.ReadFile(filepath.Join(testDir, tc.configFile))
 				require.NoError(t, err, "error reading test config file")
-				err = os.WriteFile(filepath.Join(tmpDir, "stingoftheviper.toml"), configB, 0644)
-				require.NoError(t, err, "error writing test config file")
-				defer os.Remove(filepath.Join(tmpDir, "stingoftheviper.toml"))
 
-				// Run ./stingoftheviper
-				cmd := NewRootCommand()
+				err = os.WriteFile(filepath.Join(tmpDir, configFileTOML), configB, 0644)
+				require.NoError(t, err, "error writing test config file")
+				defer os.Remove(filepath.Join(tmpDir, configFileTOML))
+
+				// Run ./example
+				cmd := newRootCommand(envPrefix, configName, tc.replaceHyphenWithCamelCase)
 				output := &bytes.Buffer{}
 				cmd.SetOut(output)
 				if err := cmd.Execute(); err != nil {
@@ -66,13 +70,14 @@ The magic number is: 7
 		}
 	})
 
-	// Set favorite-color with an environment variable
-	t.Run("env var", func(t *testing.T) {
-		// Run STING_FAVORITE_COLOR=purple ./stingoftheviper
-		os.Setenv("STING_FAVORITE_COLOR", "purple")
-		defer os.Unsetenv("STING_FAVORITE_COLOR")
+	t.Run("Set favorite-color with an environment variable", func(t *testing.T) {
+		// Run TEST_FAVORITE_COLOR=purple ./example
+		colorEnvVar := fmt.Sprintf("%s_FAVORITE_COLOR", envPrefix)
 
-		cmd := NewRootCommand()
+		os.Setenv(colorEnvVar, "purple")
+		defer os.Unsetenv(colorEnvVar)
+
+		cmd := newRootCommand(envPrefix, configName, false)
 		output := &bytes.Buffer{}
 		cmd.SetOut(output)
 		if err := cmd.Execute(); err != nil {
@@ -86,10 +91,9 @@ The magic number is: 7
 		assert.Equal(t, wantOutput, gotOutput, "expected the color to use the environment variable value and the number to use the flag default")
 	})
 
-	// Set number with a flag
-	t.Run("flag", func(t *testing.T) {
-		// Run ./stingoftheviper --number 2
-		cmd := NewRootCommand()
+	t.Run("Set number with a flag", func(t *testing.T) {
+		// Run ./example --number 2
+		cmd := newRootCommand(envPrefix, configName, false)
 		output := &bytes.Buffer{}
 		cmd.SetOut(output)
 		cmd.SetArgs([]string{"--number", "2"})
