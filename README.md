@@ -1,4 +1,6 @@
 # `venom` - Configuration management helper for `cobra` and `viper` 🐍
+<img src="https://github.com/virtualtam/venom/actions/workflows/ci.yaml/badge.svg?branch=main" alt="Continuous Integration workflow status">
+
 Venom provides helper functions to use the [cobra](https://github.com/spf13/cobra)
 and [viper](https://github.com/spf13/viper) libraries in cunjunction to load
 application configuration from:
