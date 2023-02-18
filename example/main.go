@@ -46,7 +46,7 @@ func NewRootCommand() *cobra.Command {
 		Long:  "Demonstrate how to get cobra flags to bind to viper properly",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-			return venom.InitializeConfig(cmd, envPrefix, defaultConfigFilename, replaceHyphenWithCamelCase)
+			return venom.Inject(cmd, envPrefix, defaultConfigFilename, replaceHyphenWithCamelCase)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier

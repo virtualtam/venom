@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func InitializeConfig(cmd *cobra.Command, envPrefix string, configName string, replaceHyphenWithCamelCase bool) error {
+func Inject(cmd *cobra.Command, envPrefix string, configName string, replaceHyphenWithCamelCase bool) error {
 	v := viper.New()
 
 	// Set the base name of the config file, without the file extension.
