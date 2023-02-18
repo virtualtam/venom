@@ -8,8 +8,11 @@ import (
 )
 
 func main() {
-	// The name of our config file, without the file extension because viper supports many different config file languages.
-	defaultConfigFilename := "venomous"
+	// An array specifying in which directories Viper should look for configuration files.
+	configPaths := []string{"."}
+
+	// The name of our config file, without the file extension because Viper supports many different config file languages.
+	configFilename := "venomous"
 
 	// The environment variable prefix of all environment variables bound to our command line flags.
 	// For example, --number is bound to VENOMOUS_NUMBER.
@@ -18,12 +21,12 @@ func main() {
 	// Replace hyphenated flag names with camelCase in the config file
 	replaceHyphenWithCamelCase := false
 
-	cmd := newRootCommand(envPrefix, defaultConfigFilename, replaceHyphenWithCamelCase)
+	cmd := newRootCommand(envPrefix, configPaths, configFilename, replaceHyphenWithCamelCase)
 	cobra.CheckErr(cmd.Execute())
 }
 
 // newRootCommand initializes and returns an example Cobra command.
-func newRootCommand(envPrefix string, configName string, replaceHyphenWithCamelCase bool) *cobra.Command {
+func newRootCommand(envPrefix string, configPaths []string, configName string, replaceHyphenWithCamelCase bool) *cobra.Command {
 	// Store the result of binding cobra flags and viper config. In a
 	// real application these would be data structures, most likely
 	// custom structs per command. This is simplified for the demo app and is
@@ -40,7 +43,7 @@ func newRootCommand(envPrefix string, configName string, replaceHyphenWithCamelC
 		Long:  "Demonstrate how to get cobra flags to bind to viper properly",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-			return venom.Inject(cmd, envPrefix, configName, replaceHyphenWithCamelCase)
+			return venom.Inject(cmd, envPrefix, configPaths, configName, replaceHyphenWithCamelCase)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier

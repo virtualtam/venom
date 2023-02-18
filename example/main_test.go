@@ -10,6 +10,7 @@ import (
 
 func TestPrecedence(t *testing.T) {
 	envPrefix := "TEST"
+	configPaths := []string{"."}
 	configName := "test"
 
 	// Run the tests in a temporary directory
@@ -59,7 +60,7 @@ func TestPrecedence(t *testing.T) {
 				defer os.Remove(filepath.Join(tmpDir, configFileTOML))
 
 				// Run ./example
-				cmd := newRootCommand(envPrefix, configName, tc.replaceHyphenWithCamelCase)
+				cmd := newRootCommand(envPrefix, configPaths, configName, tc.replaceHyphenWithCamelCase)
 				output := &bytes.Buffer{}
 				cmd.SetOut(output)
 				if err := cmd.Execute(); err != nil {
@@ -84,7 +85,7 @@ The magic number is: 7
 		os.Setenv(colorEnvVar, "purple")
 		defer os.Unsetenv(colorEnvVar)
 
-		cmd := newRootCommand(envPrefix, configName, false)
+		cmd := newRootCommand(envPrefix, configPaths, configName, false)
 		output := &bytes.Buffer{}
 		cmd.SetOut(output)
 		if err := cmd.Execute(); err != nil {
@@ -102,7 +103,7 @@ The magic number is: 7
 
 	t.Run("Set number from the flag value and the color from the default flag value", func(t *testing.T) {
 		// Run ./example --number 2
-		cmd := newRootCommand(envPrefix, configName, false)
+		cmd := newRootCommand(envPrefix, configPaths, configName, false)
 		output := &bytes.Buffer{}
 		cmd.SetOut(output)
 		cmd.SetArgs([]string{"--number", "2"})
