@@ -1,3 +1,6 @@
+// Package venom provides helper functions to use the cobra and viper libraries
+// in cunjunction to load application configuration from command-line flags
+// (cobra), environment variables (viper) and configuration file(s) (viper).
 package venom
 
 import (
@@ -10,6 +13,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Inject binds environment variables and configuration file settings to
+// command flags.
 func Inject(cmd *cobra.Command, envPrefix string, configName string, replaceHyphenWithCamelCase bool) error {
 	v := viper.New()
 
@@ -53,7 +58,8 @@ func Inject(cmd *cobra.Command, envPrefix string, configName string, replaceHyph
 	return nil
 }
 
-// Bind each cobra flag to its associated viper configuration (config file and environment variable)
+// bindFlags binds each command flag to its associated Viper configuration key
+// and environment variable.
 func bindFlags(cmd *cobra.Command, v *viper.Viper, replaceHyphenWithCamelCase bool) error {
 	var flagErrors error
 
