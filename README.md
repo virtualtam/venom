@@ -9,6 +9,10 @@ application configuration from:
 - environment variables (`viper`),
 - configuration file(s) (`viper`).
 
+## Change Log
+
+See [CHANGELOG](./CHANGELOG.md).
+
 ## Example
 An example Cobra application can be found under [example/main.go](./example/main.go).
 
