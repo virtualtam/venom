@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [v1.1.0](https://github.com/virtualtam/venom/releases/tag/v1.1.0) - 2023-06-28
+### Added
+- Add `InjectTo()` function to reuse an existing `viper.Viper` instance
+
+### Changed
+- Bump Go module dependencies
+
+
 ## [v1.0.0](https://github.com/virtualtam/venom/releases/tag/v1.0.0) - 2023-02-18
 Initial release.
 
