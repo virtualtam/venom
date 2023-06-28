@@ -13,11 +13,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Inject binds environment variables and configuration file settings to
-// command flags.
+// Inject creates a new viper.Viper and binds environment variables and configuration file
+// settings to command flags.
 func Inject(cmd *cobra.Command, envPrefix string, configPaths []string, configName string, replaceHyphenWithCamelCase bool) error {
 	v := viper.New()
+	return InjectTo(v, cmd, envPrefix, configPaths, configName, replaceHyphenWithCamelCase)
+}
 
+// Inject binds environment variables and configuration file settings to
+// command flags using an existing viper.Viper.
+func InjectTo(v *viper.Viper, cmd *cobra.Command, envPrefix string, configPaths []string, configName string, replaceHyphenWithCamelCase bool) error {
 	// Set as many paths as you like where viper should look for the
 	// config file.
 	for _, configPath := range configPaths {
